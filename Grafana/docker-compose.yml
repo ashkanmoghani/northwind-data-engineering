@@ -1,0 +1,31 @@
+name: northwind_grafana
+services:
+  grafana:
+    image: ${GRAFANA_IMAGE:-grafana/grafana:13.2.1}
+    container_name: northwind_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_PLUGINS_PREINSTALL_SYNC: grafana-clickhouse-datasource@4.21.2
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?Run python3 classic.py up first}
+    ports:
+      - 127.0.0.1:${GRAFANA_PORT:-3000}:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - northwind
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O /dev/null http://127.0.0.1:3000/api/health']
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 45s
+networks:
+  northwind:
+    external: true
+    name: northwind_classic_default
+volumes:
+  grafana_data: {}

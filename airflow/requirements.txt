@@ -1,0 +1,7 @@
+apache-airflow==2.10.5
+docker==7.1.0
+pyodbc==5.2.0
+psycopg2-binary==2.9.10
+clickhouse-connect==0.8.18
+requests==2.32.4
+jdatetime==5.2.0

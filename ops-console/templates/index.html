@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Northwind Operations Console</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #080b12;
+            color: #e5e7eb;
+            font-family:
+                Inter,
+                Segoe UI,
+                Arial,
+                sans-serif;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: auto;
+            padding: 26px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 27px;
+        }
+
+        .subtitle {
+            margin-top: 5px;
+            color: #7c8aa5;
+            font-size: 13px;
+        }
+
+        .live {
+            color: #22c55e;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .metrics {
+            grid-template-columns:
+                repeat(6, minmax(120px, 1fr));
+        }
+
+        .metric,
+        .panel {
+            background: #10151f;
+            border: 1px solid #1d2838;
+            border-radius: 13px;
+        }
+
+        .metric {
+            padding: 18px;
+        }
+
+        .metric-label {
+            color: #76859d;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 27px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .panel {
+            margin-top: 15px;
+            padding: 19px;
+        }
+
+        .panel-title {
+            margin-bottom: 17px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #8795ab;
+            letter-spacing: 1.2px;
+        }
+
+        .services {
+            grid-template-columns:
+                repeat(5, minmax(170px, 1fr));
+        }
+
+        .service {
+            background: #0b1018;
+            border: 1px solid #192332;
+            border-radius: 9px;
+            padding: 13px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 7px;
+        }
+
+        .up {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .down {
+            background: #ef4444;
+        }
+
+        .service-status {
+            color: #76859d;
+            margin-top: 6px;
+            font-size: 11px;
+        }
+
+        .latest {
+            padding: 15px;
+            background: #0b1018;
+            border-radius: 10px;
+            margin-bottom: 17px;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .trace {
+            color: #38bdf8;
+        }
+
+        .pipeline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0 5px;
+        }
+
+        .stage {
+            min-width: 180px;
+            padding: 18px 12px;
+            text-align: center;
+            background: #0b1018;
+            border: 1px solid #263244;
+            border-radius: 10px;
+        }
+
+        .stage.success {
+            border-color: #16a34a;
+            box-shadow:
+                inset 0 0 18px
+                rgba(34, 197, 94, 0.06);
+        }
+
+        .stage.running {
+            border-color: #eab308;
+            box-shadow:
+                inset 0 0 18px
+                rgba(234, 179, 8, 0.06);
+        }
+
+        .stage.failed {
+            border-color: #ef4444;
+        }
+
+        .stage-name {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .stage-status {
+            margin-top: 7px;
+            font-size: 11px;
+            color: #8190a6;
+        }
+
+        .arrow {
+            color: #44536b;
+            font-size: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            color: #75849a;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #273244;
+        }
+
+        td {
+            padding: 11px 10px;
+            border-bottom: 1px solid #161f2d;
+        }
+
+        .success-text {
+            color: #22c55e;
+        }
+
+        .failed-text {
+            color: #ef4444;
+        }
+
+        .running-text {
+            color: #eab308;
+        }
+
+        .links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .links a {
+            color: #cbd5e1;
+            background: #151c28;
+            text-decoration: none;
+            padding: 9px 13px;
+            border-radius: 7px;
+            border: 1px solid #273244;
+            font-size: 12px;
+        }
+
+        .log-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .log-button {
+            border: 1px solid #273244;
+            background: #111827;
+            color: #94a3b8;
+            padding: 8px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .log-button:hover {
+            border-color: #38bdf8;
+            color: #e2e8f0;
+        }
+
+        .log-button.active {
+            background: #0c4a6e;
+            border-color: #38bdf8;
+            color: #e0f2fe;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .log-terminal {
+            background: #05070b;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            min-height: 360px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding: 15px;
+
+            font-family:
+                Consolas,
+                "Courier New",
+                monospace;
+
+            font-size: 12px;
+            line-height: 1.55;
+
+            color: #b7c4d8;
+
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-source {
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+
+        @media(max-width: 1100px) {
+            .metrics {
+                grid-template-columns:
+                    repeat(3, 1fr);
+            }
+
+            .services {
+                grid-template-columns:
+                    repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h1>Northwind Data Platform</h1>
+            <div class="subtitle">
+                Operations & Pipeline Console
+            </div>
+        </div>
+
+        <div>
+            <div class="links">
+                <a
+                    href="http://127.0.0.1:{{ airflow_port }}"
+                    target="_blank"
+                >
+                    Airflow
+                </a>
+
+                <a
+                    href="http://127.0.0.1:{{ spark_port }}"
+                    target="_blank"
+                >
+                    Spark
+                </a>
+
+                {% if grafana_url %}<a href="{{ grafana_url }}"
+                    target="_blank"
+                >
+                    Grafana
+                </a>{% endif %}
+            </div>
+
+            <div
+                class="live"
+                style="margin-top:8px;text-align:right;"
+            >
+                ● LIVE
+            </div>
+        </div>
+    </div>
+
+
+    <div class="grid metrics">
+
+        <div class="metric">
+            <div class="metric-label">
+                Total Events
+            </div>
+            <div
+                class="metric-value"
+                id="total"
+            >-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">
+                Processed
+            </div>
+            <div
+                class="metric-value"
+                id="processed"
+            >-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">
+                Active
+            </div>
+            <div
+                class="metric-value"
+                id="active"
+            >-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">
+                Failed
+            </div>
+            <div
+                class="metric-value"
+                id="failed"
+            >-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">
+                Events / 24H
+            </div>
+            <div
+                class="metric-value"
+                id="events24"
+            >-</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">
+                AVG Latency
+            </div>
+            <div
+                class="metric-value"
+                id="latency"
+            >-</div>
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-title">
+            PLATFORM SERVICES
+        </div>
+
+        <div
+            class="grid services"
+            id="services"
+        ></div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-title">
+            CURRENT EVENT PIPELINE
+        </div>
+
+        <div
+            class="latest"
+            id="latest"
+        >
+            Waiting for event...
+        </div>
+
+        <div
+            class="pipeline"
+            id="pipeline"
+        ></div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-title">
+            AIRFLOW ORCHESTRATION
+        </div>
+
+        <div
+            class="grid"
+            style="
+                grid-template-columns:
+                repeat(4, minmax(130px, 1fr));
+                margin-bottom: 18px;
+            "
+        >
+
+            <div class="metric">
+                <div class="metric-label">
+                    Total Runs
+                </div>
+                <div
+                    class="metric-value"
+                    id="airflowTotal"
+                >-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    Successful
+                </div>
+                <div
+                    class="metric-value"
+                    id="airflowSuccess"
+                >-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    Failed
+                </div>
+                <div
+                    class="metric-value"
+                    id="airflowFailed"
+                >-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    Running
+                </div>
+                <div
+                    class="metric-value"
+                    id="airflowRunning"
+                >-</div>
+            </div>
+
+        </div>
+
+
+        <div
+            class="latest"
+            id="airflowLatest"
+        >
+            Waiting for Airflow...
+        </div>
+
+
+        <div
+            class="pipeline"
+            id="airflowTasks"
+        ></div>
+
+
+        <div
+            style="
+                margin-top:22px;
+                margin-bottom:10px;
+                color:#75849a;
+                font-size:11px;
+                letter-spacing:1px;
+            "
+        >
+            RECENT DAG RUNS
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>RUN ID</th>
+                <th>TYPE</th>
+                <th>STATUS</th>
+                <th>START</th>
+                <th>END</th>
+            </tr>
+            </thead>
+
+            <tbody id="airflowRuns">
+            </tbody>
+        </table>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <div class="panel-title">
+            ALERT CENTER
+        </div>
+
+        <div
+            class="grid"
+            style="
+                grid-template-columns:
+                repeat(4, minmax(130px, 1fr));
+                margin-bottom:18px;
+            "
+        >
+
+            <div class="metric">
+                <div class="metric-label">
+                    Total Alerts
+                </div>
+                <div
+                    class="metric-value"
+                    id="alertTotal"
+                >-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    Errors
+                </div>
+                <div
+                    class="metric-value"
+                    id="alertErrors"
+                >-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    SMS Sent
+                </div>
+                <div
+                    class="metric-value"
+                    id="alertSmsSent"
+                >-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    SMS Failed
+                </div>
+                <div
+                    class="metric-value"
+                    id="alertSmsFailed"
+                >-</div>
+            </div>
+
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>PIPELINE</th>
+                <th>STAGE</th>
+                <th>SEVERITY</th>
+                <th>MESSAGE</th>
+                <th>SMS</th>
+                <th>TIME</th>
+            </tr>
+            </thead>
+
+            <tbody id="alertsTable">
+            </tbody>
+        </table>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <div class="panel-title">
+            LIVE PLATFORM LOGS
+        </div>
+
+
+        <div class="log-toolbar">
+
+            <button
+                class="log-button active"
+                data-source="airflow"
+            >
+                AIRFLOW
+            </button>
+
+            <button
+                class="log-button"
+                data-source="spark"
+            >
+                SPARK
+            </button>
+
+            <button
+                class="log-button"
+                data-source="orders"
+            >
+                ORDERS CDC
+            </button>
+
+            <button
+                class="log-button"
+                data-source="orderdetails"
+            >
+                ORDER DETAILS CDC
+            </button>
+
+            <button
+                class="log-button"
+                data-source="consumer"
+            >
+                FACT CONSUMER
+            </button>
+
+            <button
+                class="log-button"
+                data-source="kafka"
+            >
+                KAFKA
+            </button>
+
+        </div>
+
+
+        <div class="log-header">
+
+            <div>
+                SOURCE:
+                <span
+                    class="log-source"
+                    id="currentLogSource"
+                >
+                    airflow_scheduler
+                </span>
+            </div>
+
+            <div>
+                AUTO REFRESH: 2s
+            </div>
+
+        </div>
+
+
+        <div
+            class="log-terminal"
+            id="logTerminal"
+        >
+            Loading logs...
+        </div>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <div class="panel-title">
+            RECENT CDC EVENTS
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>TRACE</th>
+                <th>SOURCE</th>
+                <th>ACTION</th>
+                <th>ORDER</th>
+                <th>PRODUCT</th>
+                <th>STATUS</th>
+                <th>CURRENT STAGE</th>
+                <th>RETRIES</th>
+            </tr>
+            </thead>
+
+            <tbody id="events">
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+
+<script>
+function escapeText(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+}
+
+
+const stageOrder = [
+    "CDC_CAPTURE",
+    "KAFKA_PUBLISH",
+    "KAFKA_CONSUME",
+    "CLICKHOUSE_WRITE"
+];
+
+
+const airflowTaskOrder = [
+    "check_batch_ready",
+    "validate_clickhouse_dimensions",
+    "load_staging_factorders",
+    "validate_staging_factorders",
+    "run_spark_factorders",
+    "validate_factorders"
+];
+
+
+function displayStageName(stage) {
+
+    const labels = {
+        CDC_CAPTURE: "SQL SERVER CDC",
+        KAFKA_PUBLISH: "KAFKA PUBLISH",
+        KAFKA_CONSUME: "KAFKA CONSUME",
+        CLICKHOUSE_WRITE: "CLICKHOUSE DW"
+    };
+
+    return labels[stage] || stage;
+}
+
+
+function statusClass(status) {
+
+    if (status === "success" ||
+        status === "processed") {
+        return "success";
+    }
+
+    if (status === "running" ||
+        status === "processing" ||
+        status === "published") {
+        return "running";
+    }
+
+    if (status === "failed") {
+        return "failed";
+    }
+
+    return "";
+}
+
+
+async function refreshDashboard() {
+
+    try {
+
+        const response = await fetch(
+            "/api/dashboard",
+            {
+                cache: "no-store"
+            }
+        );
+
+        const data = await response.json();
+
+        const m = data.metrics || {};
+
+        document.getElementById("total").textContent =
+            m.total_events ?? 0;
+
+        document.getElementById("processed").textContent =
+            m.processed_events ?? 0;
+
+        document.getElementById("active").textContent =
+            m.active_events ?? 0;
+
+        document.getElementById("failed").textContent =
+            m.failed_events ?? 0;
+
+        document.getElementById("events24").textContent =
+            m.events_24h ?? 0;
+
+        const latency = m.avg_latency_ms;
+
+        document.getElementById("latency").textContent =
+            latency === null || latency === undefined
+                ? "—"
+                : `${Number(latency).toLocaleString()} ms`;
+
+
+        const serviceRoot =
+            document.getElementById("services");
+
+        serviceRoot.innerHTML = "";
+
+        for (const service of data.services) {
+
+            const element =
+                document.createElement("div");
+
+            element.className = "service";
+
+            element.innerHTML = `
+                <div>
+                    <span class="dot ${escapeText(service.running
+                            ? "up"
+                            : "down")}"></span>
+
+                    ${escapeText(service.name)}
+                </div>
+
+                <div class="service-status">
+                    ${escapeText(service.status)}
+                </div>
+            `;
+
+            serviceRoot.appendChild(element);
+        }
+
+
+        const latest = data.latest_event;
+
+        if (latest) {
+
+            document.getElementById(
+                "latest"
+            ).innerHTML = `
+                TRACE:
+                <span class="trace">
+                    ${escapeText(latest.trace_id)}
+                </span>
+                &nbsp;&nbsp;
+                SOURCE: ${escapeText(latest.source_table)}
+                &nbsp;&nbsp;
+                ACTION: ${escapeText(latest.action)}
+                &nbsp;&nbsp;
+                ORDER: ${escapeText(latest.orderid)}
+                &nbsp;&nbsp;
+                STATUS:
+                <span class="${escapeText(statusClass(
+                        latest.event_status
+                    ))}-text">
+                    ${escapeText(latest.event_status)}
+                </span>
+            `;
+
+        }
+
+
+        const stageMap = {};
+
+        for (const stage of data.pipeline_stages) {
+            stageMap[stage.stage] = stage;
+        }
+
+
+        const pipelineRoot =
+            document.getElementById("pipeline");
+
+        pipelineRoot.innerHTML = "";
+
+        stageOrder.forEach(
+            (stageName, index) => {
+
+                const stage =
+                    stageMap[stageName];
+
+                const status =
+                    stage
+                        ? stage.status
+                        : "waiting";
+
+                const element =
+                    document.createElement("div");
+
+                element.className =
+                    `stage ${statusClass(status)}`;
+
+                element.innerHTML = `
+                    <div class="stage-name">
+                        ${escapeText(displayStageName(stageName))}
+                    </div>
+
+                    <div class="stage-status">
+                        ${escapeText(status.toUpperCase())}
+                    </div>
+                `;
+
+                pipelineRoot.appendChild(
+                    element
+                );
+
+                if (
+                    index <
+                    stageOrder.length - 1
+                ) {
+
+                    const arrow =
+                        document.createElement("div");
+
+                    arrow.className = "arrow";
+                    arrow.textContent = "→";
+
+                    pipelineRoot.appendChild(
+                        arrow
+                    );
+                }
+            }
+        );
+
+
+
+
+        const alertSummary =
+            data.alert_summary || {};
+
+        document.getElementById(
+            "alertTotal"
+        ).textContent =
+            alertSummary.total ?? 0;
+
+        document.getElementById(
+            "alertErrors"
+        ).textContent =
+            alertSummary.errors ?? 0;
+
+        document.getElementById(
+            "alertSmsSent"
+        ).textContent =
+            alertSummary.sms_sent ?? 0;
+
+        document.getElementById(
+            "alertSmsFailed"
+        ).textContent =
+            alertSummary.sms_failed ?? 0;
+
+
+        const alertsRoot =
+            document.getElementById(
+                "alertsTable"
+            );
+
+        alertsRoot.innerHTML = "";
+
+        for (
+            const alert of
+            (data.alerts || [])
+        ) {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML = `
+                <td>
+                    ${escapeText(alert.alert_id)}
+                </td>
+
+                <td class="trace">
+                    ${escapeText(alert.pipeline_name || "—")}
+                </td>
+
+                <td>
+                    ${escapeText(alert.stage || "—")}
+                </td>
+
+                <td class="${escapeText(alert.severity === "error"
+                        ? "failed-text"
+                        : "")}">
+                    ${escapeText(alert.severity)}
+                </td>
+
+                <td>
+                    ${escapeText(alert.message)}
+                </td>
+
+                <td class="${escapeText(alert.sms_status === "sent"
+                        ? "success-text"
+                        :
+                    alert.sms_status === "failed"
+                        ? "failed-text"
+                        : "running-text")}">
+                    ${escapeText(alert.sms_status)}
+                </td>
+
+                <td>
+                    ${escapeText(alert.created_at
+                            ? new Date(
+                                alert.created_at
+                            ).toLocaleString()
+                            : "—")}
+                </td>
+            `;
+
+            alertsRoot.appendChild(row);
+        }
+
+
+        const airflow =
+            data.airflow || {};
+
+        const airflowSummary =
+            airflow.summary || {};
+
+        document.getElementById(
+            "airflowTotal"
+        ).textContent =
+            airflowSummary.total ?? 0;
+
+        document.getElementById(
+            "airflowSuccess"
+        ).textContent =
+            airflowSummary.success ?? 0;
+
+        document.getElementById(
+            "airflowFailed"
+        ).textContent =
+            airflowSummary.failed ?? 0;
+
+        document.getElementById(
+            "airflowRunning"
+        ).textContent =
+            airflowSummary.running ?? 0;
+
+
+        const airflowLatest =
+            airflow.latest_run;
+
+        const airflowLatestRoot =
+            document.getElementById(
+                "airflowLatest"
+            );
+
+
+        if (airflow.error) {
+
+            airflowLatestRoot.innerHTML = `
+                <span class="failed-text">
+                    AIRFLOW ERROR:
+                    ${escapeText(airflow.error)}
+                </span>
+            `;
+
+        }
+
+        else if (airflowLatest) {
+
+            const currentTask =
+                (airflow.tasks || []).find(
+                    task =>
+                        task.state === "running" ||
+                        task.state === "queued" ||
+                        task.state === "scheduled"
+                );
+
+            let currentTaskText;
+
+            if (currentTask) {
+                currentTaskText =
+                    currentTask.task_id;
+            }
+
+            else if (
+                airflowLatest.state === "success"
+            ) {
+                currentTaskText = "COMPLETED";
+            }
+
+            else if (
+                airflowLatest.state === "failed"
+            ) {
+                const failedTask =
+                    (airflow.tasks || []).find(
+                        task =>
+                            task.state === "failed"
+                    );
+
+                currentTaskText =
+                    failedTask
+                        ? failedTask.task_id
+                        : "FAILED";
+            }
+
+            else {
+                currentTaskText = "WAITING";
+            }
+
+
+            airflowLatestRoot.innerHTML = `
+                DAG:
+                <span class="trace">
+                    ${escapeText(airflowLatest.dag_id)}
+                </span>
+
+                &nbsp;&nbsp;
+
+                STATUS:
+                <span class="${escapeText(statusClass(
+                        airflowLatest.state
+                    ))}-text">
+                    ${escapeText(airflowLatest.state)}
+                </span>
+
+                &nbsp;&nbsp;
+
+                CURRENT:
+                <span class="trace">
+                    ${escapeText(currentTaskText)}
+                </span>
+
+                <br><br>
+
+                RUN:
+                ${escapeText(airflowLatest.run_id)}
+            `;
+
+        }
+
+
+        const airflowTaskMap = {};
+
+        for (
+            const task of
+            (airflow.tasks || [])
+        ) {
+            airflowTaskMap[
+                task.task_id
+            ] = task;
+        }
+
+
+        const airflowTaskRoot =
+            document.getElementById(
+                "airflowTasks"
+            );
+
+        airflowTaskRoot.innerHTML = "";
+
+
+        airflowTaskOrder.forEach(
+            (taskName, index) => {
+
+                const task =
+                    airflowTaskMap[
+                        taskName
+                    ];
+
+                const taskState =
+                    task
+                        ? task.state
+                        : "waiting";
+
+                const duration =
+                    task &&
+                    task.duration !== null &&
+                    task.duration !== undefined
+                        ? Number(
+                            task.duration
+                        ).toFixed(2) + "s"
+                        : "—";
+
+
+                const element =
+                    document.createElement(
+                        "div"
+                    );
+
+                element.className =
+                    `stage ${
+                        statusClass(
+                            taskState
+                        )
+                    }`;
+
+                element.innerHTML = `
+                    <div class="stage-name">
+                        ${escapeText(taskName)}
+                    </div>
+
+                    <div class="stage-status">
+                        ${escapeText((
+                                taskState ||
+                                "waiting"
+                            ).toUpperCase())}
+                    </div>
+
+                    <div
+                        class="stage-status"
+                        style="margin-top:4px"
+                    >
+                        ${escapeText(duration)}
+                    </div>
+                `;
+
+                airflowTaskRoot.appendChild(
+                    element
+                );
+
+
+                if (
+                    index <
+                    airflowTaskOrder.length - 1
+                ) {
+
+                    const arrow =
+                        document.createElement(
+                            "div"
+                        );
+
+                    arrow.className =
+                        "arrow";
+
+                    arrow.textContent =
+                        "→";
+
+                    airflowTaskRoot.appendChild(
+                        arrow
+                    );
+                }
+            }
+        );
+
+
+        const airflowRunsRoot =
+            document.getElementById(
+                "airflowRuns"
+            );
+
+        airflowRunsRoot.innerHTML = "";
+
+
+        for (
+            const run of
+            (airflow.recent_runs || [])
+        ) {
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+            row.innerHTML = `
+                <td class="trace">
+                    ${escapeText(run.run_id)}
+                </td>
+
+                <td>
+                    ${escapeText(run.run_type)}
+                </td>
+
+                <td class="${escapeText(statusClass(
+                        run.state
+                    ))}-text">
+                    ${escapeText(run.state)}
+                </td>
+
+                <td>
+                    ${escapeText(run.start_date
+                            ? new Date(
+                                run.start_date
+                            ).toLocaleString()
+                            : "—")}
+                </td>
+
+                <td>
+                    ${escapeText(run.end_date
+                            ? new Date(
+                                run.end_date
+                            ).toLocaleString()
+                            : "—")}
+                </td>
+            `;
+
+            airflowRunsRoot.appendChild(
+                row
+            );
+        }
+
+
+        const eventsRoot =
+            document.getElementById("events");
+
+        eventsRoot.innerHTML = "";
+
+        for (
+            const event of
+            data.recent_events
+        ) {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML = `
+                <td class="trace">
+                    ${escapeText(event.trace_id)}
+                </td>
+
+                <td>
+                    ${escapeText(event.source_table)}
+                </td>
+
+                <td>
+                    ${escapeText(event.action)}
+                </td>
+
+                <td>
+                    ${escapeText(event.orderid ?? "—")}
+                </td>
+
+                <td>
+                    ${escapeText(event.productid ?? "—")}
+                </td>
+
+                <td class="${escapeText(statusClass(
+                        event.event_status
+                    ))}-text">
+                    ${escapeText(event.event_status)}
+                </td>
+
+                <td>
+                    ${escapeText(event.current_stage ?? "—")}
+                </td>
+
+                <td>
+                    ${escapeText(event.retry_count)}
+                </td>
+            `;
+
+            eventsRoot.appendChild(row);
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "dashboard refresh failed",
+            error
+        );
+    }
+}
+
+
+
+let selectedLogSource = "airflow";
+
+
+const logSourceNames = {
+    airflow: "airflow_scheduler",
+    spark: "spark-master",
+    orders: "orders_cdc_reader",
+    orderdetails: "orderdetails_cdc_reader",
+    consumer: "factorders_consumer",
+    kafka: "northwind_kafka"
+};
+
+
+async function refreshLogs() {
+
+    try {
+
+        const response = await fetch(
+            `/api/logs/${selectedLogSource}?tail=100`,
+            {
+                cache: "no-store"
+            }
+        );
+
+        const data =
+            await response.json();
+
+        const terminal =
+            document.getElementById(
+                "logTerminal"
+            );
+
+        document.getElementById(
+            "currentLogSource"
+        ).textContent =
+            data.container ||
+            selectedLogSource;
+
+
+        if (data.error) {
+
+            terminal.textContent =
+                `ERROR\n${data.error}`;
+
+            return;
+        }
+
+
+        terminal.textContent =
+            data.logs ||
+            "No logs available.";
+
+
+        terminal.scrollTop =
+            terminal.scrollHeight;
+
+    }
+
+    catch (error) {
+
+        document.getElementById(
+            "logTerminal"
+        ).textContent =
+            `Failed to load logs: ${error}`;
+    }
+}
+
+
+document
+    .querySelectorAll(
+        ".log-button"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    selectedLogSource =
+                        button.dataset.source;
+
+                    document
+                        .querySelectorAll(
+                            ".log-button"
+                        )
+                        .forEach(
+                            item =>
+                                item.classList.remove(
+                                    "active"
+                                )
+                        );
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                    refreshLogs();
+                }
+            );
+        }
+    );
+
+
+refreshDashboard();
+refreshLogs();
+
+
+setInterval(
+    refreshDashboard,
+    2000
+);
+
+
+setInterval(
+    refreshLogs,
+    2000
+);
+
+</script>
+
+</body>
+</html>
